@@ -1,0 +1,10 @@
+cmake-build-debug
+.idea
+test/CMakeFiles
+test/cmake_install.cmake
+test/CMakeCache.txt
+test/CMakeUserPresets.json
+test/Makefile
+test/test
+CMakeUserPresets.json
+conan_provider.cmake
