@@ -97,6 +97,7 @@ class BcryptCpp(ConanFile):
         cmake.install()
 
         copy(self, "LICENSE", src=os.path.join(self.source_folder), dst=os.path.join(self.package_folder, "licenses"))
+        rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
 
         fix_apple_shared_install_name(self)
 

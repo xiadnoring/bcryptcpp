@@ -21,10 +21,21 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+ **/
+
 
 #ifndef BCRYPT_H
 #define BCRYPT_H
+
+#if defined(_WIN32)
+#  if defined(EXPORTING_BCRYPT)
+#    define DECLSPEC __declspec(dllexport)
+#  else
+#    define DECLSPEC __declspec(dllimport)
+#  endif
+#else // non windows
+#  define DECLSPEC
+#endif
 
 #define BCRYPT_EXCEPT noexcept(false)
 
@@ -36,7 +47,7 @@ namespace bcrypt {
      * @param random_bytes the length of the random string
      * @return 
      */
-    std::string gensalt (const int &factor, const std::string &minor = "b", const size_t &random_bytes = 16) BCRYPT_EXCEPT;
+    std::string DECLSPEC gensalt (const int &factor, const std::string &minor = "b", const size_t &random_bytes = 16) BCRYPT_EXCEPT;
 
     /**
      * hash data using a salt
@@ -44,7 +55,7 @@ namespace bcrypt {
      * @param salt the salt to use when hashing
      * @return hash
      */
-    std::string hash (const std::string &data, const std::string &salt) BCRYPT_EXCEPT;
+    std::string DECLSPEC hash (const std::string &data, const std::string &salt) BCRYPT_EXCEPT;
 
     /**
      * compare raw data to hash
@@ -52,7 +63,7 @@ namespace bcrypt {
      * @param origin data to hash and compare
      * @return true if hashed data matches hash, false otherwise
      */
-    bool compare (const std::string &hash, const std::string &origin) BCRYPT_EXCEPT;
+    bool DECLSPEC compare (const std::string &hash, const std::string &origin) BCRYPT_EXCEPT;
 }
 
 #undef BCRYPT_EXCEPT
