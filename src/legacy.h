@@ -131,7 +131,9 @@ struct crypt_data
    not true in the presence of vector types, but we currently don't
    use vector types, and hopefully any compiler with extra-aligned
    vector types will provide max_align_t.  */
-#if not defined(HAVE_MAX_ALIGN_T) && not defined(_GCC_MAX_ALIGN_T)
+#ifndef HAVE_MAX_ALIGN_T
+#ifndef _GCC_MAX_ALIGN_T
+#ifndef _CSTDDEF_
 typedef union
 {
   long double ld;
@@ -139,6 +141,8 @@ typedef union
   void *vp;
   void (*vpf)(void);
 } max_align_t;
+#endif
+#endif
 #endif
 
 struct crypt_internal
@@ -164,7 +168,7 @@ static inline struct crypt_internal * get_internal (struct crypt_data *data)
 
 #if INCLUDE_bcrypt || INCLUDE_bcrypt_a || INCLUDE_bcrypt_x || INCLUDE_bcrypt_y
 
-#if defined(__i386__) || defined(__x86_64__) || \
+#if defined(_WIN64) || defined(__i386__) || defined(__x86_64__) || \
     defined(__alpha__) || defined(__hppa__)
 #define BF_SCALE                        1
 #else

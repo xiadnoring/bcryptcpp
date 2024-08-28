@@ -31,11 +31,13 @@
 #  if defined(EXPORTING_BCRYPT)
 #    define DECLSPEC __declspec(dllexport)
 #  else
-#    define DECLSPEC __declspec(dllimport)
+#    define DECLSPEC
 #  endif
 #else // non windows
 #  define DECLSPEC
 #endif
+
+#include <string>
 
 #define BCRYPT_EXCEPT noexcept(false)
 
@@ -45,9 +47,9 @@ namespace bcrypt {
      * @param factor number of rounds
      * @param minor a or b
      * @param random_bytes the length of the random string
-     * @return 
+     * @return
      */
-    std::string DECLSPEC gensalt (const int &factor, char minor = 'b', const size_t &random_bytes = 16) BCRYPT_EXCEPT;
+    DECLSPEC std::string gensalt (const int &factor, char minor = 'b', const size_t &random_bytes = 16) BCRYPT_EXCEPT;
 
     /**
      * hash data using a salt
@@ -55,7 +57,7 @@ namespace bcrypt {
      * @param salt the salt to use when hashing
      * @return hash
      */
-    std::string DECLSPEC hash (const std::string &data, const std::string &salt) BCRYPT_EXCEPT;
+    DECLSPEC std::string hash (const std::string &data, const std::string &salt) BCRYPT_EXCEPT;
 
     /**
      * compare raw data to hash

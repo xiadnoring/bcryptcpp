@@ -5,7 +5,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+# option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 if (WITH_CONAN)
     message(STATUS "${PROJECT_NAME}: with conan build")
@@ -17,17 +17,17 @@ else ()
     pkg_check_modules(FMT REQUIRED fmt)
 endif ()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 if (BCRYPT_CPP_TEST)
     add_executable(${PROJECT_NAME} src/main.cpp
-            src/bcrypt.cpp
-            include/bcrypt.h
+            src/bcryptcpp.cpp
+            include/bcryptcpp.h
             include/errors.h
             src/legacy.h)
 else ()
-    add_library(${PROJECT_NAME} src/bcrypt.cpp
-            include/bcrypt.h
+    add_library(${PROJECT_NAME} src/bcryptcpp.cpp
+            include/bcryptcpp.h
             include/errors.h
             src/legacy.h)
 endif ()
@@ -38,13 +38,13 @@ else ()
     target_include_directories(${PROJECT_NAME} PUBLIC ${FMT_INCLUDE_DIRS})
 endif ()
 
-set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
-target_compile_definitions(${PROJECT_NAME} PRIVATE "EXPORTING_BCRYPT")
-
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 if (BCRYPT_CPP_TEST)
 else ()
+    set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS})
+    target_compile_definitions(${PROJECT_NAME} PRIVATE "EXPORTING_BCRYPT")
+
     include(GNUInstallDirs)
 
     install(TARGETS ${PROJECT_NAME} EXPORT BcryptCppConfig

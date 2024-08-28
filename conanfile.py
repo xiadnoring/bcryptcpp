@@ -32,7 +32,7 @@ class BcryptCpp(ConanFile):
 
     @property
     def _min_cppstd(self):
-        return 14
+        return 17
 
     @property
     def _compilers_minimum_version(self):
@@ -74,7 +74,6 @@ class BcryptCpp(ConanFile):
         tc.generate()
 
     def requirements(self):
-        self.requires("libxcrypt/4.4.36")
         self.requires("fmt/11.0.2")
 
     def export_sources(self):

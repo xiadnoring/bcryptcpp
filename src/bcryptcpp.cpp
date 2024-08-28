@@ -23,11 +23,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
+#if _WIN32
+#   include <windows.h>
+#   include <wincrypt.h>
+#endif
+
 #include <string>
 #include <random>
+#include <filesystem>
+#include <fstream>
 
 #include "legacy.h"
-#include "bcrypt.h"
+#include "bcryptcpp.h"
 #include "errors.h"
 
 #define BCRYPT_HASHSIZE 31
@@ -39,18 +46,52 @@
  * @return random string
  */
 std::string random_string (const size_t &len) {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist256(0,255);
-
     std::string rnd;
     rnd.resize(len);
-
-    for (size_t i = 0; i < len; i++)
-    {
-        rnd[i] = static_cast <char> (dist256(rng));
+#ifdef _WIN32
+    HCRYPTPROV h_crypt_prov;
+    if (CryptAcquireContext(&h_crypt_prov, nullptr, "Microsoft Base Cryptographic Provider v1.0",
+            PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+        {
+        if (CryptGenRandom(h_crypt_prov, (DWORD) len, (BYTE *) rnd.data()))
+        {
+            if (!CryptReleaseContext(h_crypt_prov, 0))
+            {
+                throw bcrypt::exception::gensalt ("{}(): Error during CryptReleaseContext.", __FUNCTION__);
+            }
+        }
+        else
+        {
+            if (CryptReleaseContext(h_crypt_prov, 0))
+            {
+                throw bcrypt::exception::gensalt ("{}(): Error during CryptGenRandom.", __FUNCTION__);
+            }
+            else
+            {
+                throw bcrypt::exception::gensalt ("{}(): Error during CryptReleaseContext.", __FUNCTION__);
+            }
+        }
     }
+#else
+    if (std::filesystem::exists("/dev/urandom"))
+    {
+        std::ifstream input ("/dev/urandom", std::ios::binary | std::ios::in);
+        if (!input.is_open()) { throw bcrypt::exception::gensalt ("{}(): failed to get random string from /dev/urandom", __FUNCTION__); }
+        input.read(rnd.data(), rnd.size());
+        input.close();
+    }
+    else
+    {
+        std::random_device dev;
+        std::mt19937 rng(dev());
+        std::uniform_int_distribution<std::mt19937::result_type> dist256(0,255);
 
+        for (size_t i = 0; i < len; i++)
+        {
+            rnd[i] = static_cast <char> (dist256(rng));
+        }
+    }
+#endif
     return std::move(rnd);
 }
 
