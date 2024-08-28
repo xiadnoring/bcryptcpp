@@ -2,26 +2,24 @@
 
 ## Introduction
 A c++ wrapper for [libxcrypt](https://github.com/besser82/libxcrypt) around ```bcrypt``` password hashing
-
 ## Dependencies
 For compile this library, you need to install below libraries:
-- [libxcrypt](https://github.com/besser82/libxcrypt) 4.4.6 or greater
 - [fmt](https://github.com/fmtlib/fmt) 11.0.2 or greater
 
 ### For Arch Linux
 ```bash
-pacman -S libxcrypt fmt
+pacman -S fmt
 ```
 
 or
 
 ```bash
-paru -S libxcrypt fmt
+paru -S fmt
 ```
 
 ### For Ubuntu
 ```bash
-apt-get install libcrypt-dev libfmt-dev
+apt-get install libfmt-dev
 ```
 
 ## Build
@@ -53,7 +51,7 @@ For an example of use, see the ```./test``` folder
 ## Example
 
 ```c++
-#include <bcryptcpp/bcrypt.h>
+#include <bcryptcpp/bcryptcpp.h>
 ...
 std::string passwd = "12345";
 std::string hash = bcrypt::hash (passwd, bcrypt::gensalt (12));
