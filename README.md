@@ -3,7 +3,7 @@
 ## Introduction
 A c++ wrapper for [libxcrypt](https://github.com/besser82/libxcrypt) around ```bcrypt``` password hashing
 ## Dependencies
-For compile this library, you need to install below libraries:
+For compile this library if you use c++ std **less than** 20, you need to install below libraries:
 - [fmt](https://github.com/fmtlib/fmt) 11.0.2 or greater
 
 ### For Arch Linux

@@ -22,17 +22,19 @@ class BcryptCpp(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
-        "fPIC": [True, False]
+        "fPIC": [True, False],
+        "min_cppstd": [14, 17, 20]
     }
     default_options = {
         "shared": False,
-        "fPIC": True
+        "fPIC": True,
+        "min_cppstd": 17
     }
     exports_sources = "src/*", "include/*", "CMakeLists.txt", "LICENSE"
 
     @property
     def _min_cppstd(self):
-        return 17
+        return int(self.options.min_cppstd)
 
     @property
     def _compilers_minimum_version(self):
@@ -74,7 +76,8 @@ class BcryptCpp(ConanFile):
         tc.generate()
 
     def requirements(self):
-        self.requires("fmt/11.0.2")
+        if int(self.options.min_cppstd) < 20:
+            self.requires("fmt/11.0.2")
 
     def export_sources(self):
         pass

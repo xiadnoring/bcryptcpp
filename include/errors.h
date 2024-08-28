@@ -26,35 +26,43 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-#include <fmt/format.h>
+#if defined(BCRYPT_CPP_FORMAT_SUPPORT)
+#   include <format>
+#else
+#   include <fmt/format.h>
+    using namespace fmt;
+#endif
+
 #include <exception>
 #include <string>
 
+using namespace std;
+
 namespace bcrypt::exception {
-    class base : public std::exception {
+    class base : public exception {
     public:
         template <class... Args>
-        explicit base (const std::string &msg, Args&& ...args) {
-            message = fmt::vformat(msg, fmt::make_format_args(args...));
-            if (errno != 0) { message += fmt::format("\nerrno = {} (look up in errno-base.h).", errno); }
+        explicit base (const string &msg, Args&& ...args) {
+            message = vformat(msg, make_format_args(args...));
+            if (errno != 0) { message += format("\nerrno = {} (look up in errno-base.h).", errno); }
         }
         [[nodiscard]] const char * what() const noexcept override { return message.data(); }
-    protected: std::string message;
+    protected: string message;
     };
 
     class gensalt : public bcrypt::exception::base {
     public:
-    template <class... Args> explicit gensalt (const std::string &msg, Args&& ...args) : base (msg, args...) {};
+    template <class... Args> explicit gensalt (const string &msg, Args&& ...args) : base (msg, args...) {};
     };
 
     class hash : public bcrypt::exception::base {
     public:
-    template <class... Args> explicit hash (const std::string &msg, Args&& ...args) : base (msg, args...) {};
+    template <class... Args> explicit hash (const string &msg, Args&& ...args) : base (msg, args...) {};
     };
 
     class compare : public bcrypt::exception::base {
     public:
-    template <class... Args> explicit compare (const std::string &msg, Args&& ...args) : base (msg, args...) {};
+    template <class... Args> explicit compare (const string &msg, Args&& ...args) : base (msg, args...) {};
     };
 }
 
