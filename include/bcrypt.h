@@ -47,7 +47,7 @@ namespace bcrypt {
      * @param random_bytes the length of the random string
      * @return 
      */
-    std::string DECLSPEC gensalt (const int &factor, const std::string &minor = "b", const size_t &random_bytes = 16) BCRYPT_EXCEPT;
+    std::string DECLSPEC gensalt (const int &factor, char minor = 'b', const size_t &random_bytes = 16) BCRYPT_EXCEPT;
 
     /**
      * hash data using a salt

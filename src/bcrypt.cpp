@@ -25,8 +25,8 @@
 
 #include <string>
 #include <random>
-#include <crypt.h>
 
+#include "legacy.h"
 #include "bcrypt.h"
 #include "errors.h"
 
@@ -70,25 +70,25 @@ std::string resolve_string (const std::string &str) {
     return str;
 }
 
-std::string bcrypt::gensalt(const int &factor, const std::string &minor, const size_t &random_bytes) {
+std::string bcrypt::gensalt(const int &factor = 10, char minor, const size_t &random_bytes) {
     if (factor < 4 || factor > 31)
     {
         throw bcrypt::exception::gensalt ("{}(): factor must be >= 4 and <= 31, but factor = {}", __FUNCTION__, factor);
     }
 
-    if (minor != "a" && minor != "b")
+    if (minor != 'a' && minor != 'b')
     {
         throw bcrypt::exception::gensalt ("{}(): invalid minor version, minor = {}", __FUNCTION__, minor);
     }
 
-    std::string prefix = "$2" + minor + "$";
     std::string salt;
     // max 31
     salt.resize(BCRYPT_HASHSIZE);
     const std::string rstr = random_string(random_bytes);
-    if(crypt_gensalt_rn (prefix.data(), factor, rstr.data(), static_cast<int> (rstr.size()), (char *) salt.data(), static_cast<int> (salt.size())) == nullptr)
-    {
-        throw bcrypt::exception::gensalt ("{}(): crypt_gensalt_rn(...) == nullptr.", __FUNCTION__);
+    BF_gensalt (minor, factor, reinterpret_cast <const uint8_t *> (rstr.data()), static_cast<int> (rstr.size()), (uint8_t *) salt.data(), static_cast<int> (salt.size()));
+
+    if (salt[0] == '\0') {
+        throw bcrypt::exception::gensalt ("{}(): BF_gensalt(...) -> salt = \\0 x{}.", __FUNCTION__, salt.size());
     }
 
     return std::move(resolve_string(salt));
@@ -97,9 +97,11 @@ std::string bcrypt::gensalt(const int &factor, const std::string &minor, const s
 std::string bcrypt::hash(const std::string &str, const std::string &salt) {
     std::string hash;
     hash.resize(sizeof (struct crypt_data));
-    if (crypt_rn(str.data(), salt.data(), (void *) hash.data(), static_cast<int> (hash.size())) == nullptr)
-    {
-        throw bcrypt::exception::hash ("{}(): crypto_rn(...) == nullptr.", __FUNCTION__);
+    struct crypt_internal *cint = get_internal ((crypt_data *) hash.data());
+    BF_full_crypt (str.data(), salt.data(), (uint8_t *) hash.data(), static_cast<int> (hash.size()), cint, sizeof (struct crypt_internal));
+
+    if (hash[0] == '\0') {
+        throw bcrypt::exception::hash ("{}(): BF_full_crypt(...) -> hash = \\0 x{}.", __FUNCTION__, hash.size());
     }
 
     return std::move(resolve_string (hash));

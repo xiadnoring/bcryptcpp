@@ -67,7 +67,7 @@ bool valid = bcrypt::compare (hash, passwd);
 try 
 {
     // invalid hash
-    valid = compare("12345", passwd);
+    valid = bcrypt::compare("12345", passwd);
 }
 catch (const bcrypt::exception::compare &e) 
 {
