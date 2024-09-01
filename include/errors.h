@@ -26,7 +26,7 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-#if defined(BCRYPT_CPP_FORMAT_SUPPORT)
+#if defined(BCRYPT_CPP_FORMAT_SUPPORT) || __cplusplus >= 202002L
 #   include <format>
 #else
 #   include <fmt/format.h>
