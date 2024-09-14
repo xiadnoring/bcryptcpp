@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "bcryptcpp.h"
+#include "bcryptcpp.hpp"
 
 using namespace std;
 

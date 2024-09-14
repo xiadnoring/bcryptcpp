@@ -51,7 +51,7 @@ For an example of use, see the ```./test``` folder
 ## Example
 
 ```c++
-#include <bcryptcpp/bcryptcpp.h>
+#include <bcryptcpp/bcryptcpp.hpp>
 ...
 std::string passwd = "12345";
 std::string hash = bcrypt::hash (passwd, bcrypt::gensalt (12));

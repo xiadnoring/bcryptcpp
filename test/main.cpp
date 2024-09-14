@@ -25,7 +25,7 @@
 
 #include <iostream>
 #include <string>
-#include <bcryptcpp/bcryptcpp.h>
+#include <bcryptcpp/bcryptcpp.hpp>
 
 int main () {
     const std::string str = "hello world :<";

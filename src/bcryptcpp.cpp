@@ -34,8 +34,8 @@
 #include <fstream>
 
 #include "legacy.h"
-#include "bcryptcpp.h"
-#include "errors.h"
+#include "bcryptcpp.hpp"
+#include "errors.hpp"
 
 #define BCRYPT_HASHSIZE 31
 
