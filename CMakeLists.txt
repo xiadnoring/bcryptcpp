@@ -36,12 +36,10 @@ if (BCRYPT_CPP_TEST)
     add_executable(${PROJECT_NAME} src/main.cpp
             src/bcryptcpp.cpp
             include/bcryptcpp.hpp
-            include/errors.hpp
             src/legacy.h)
 else ()
     add_library(${PROJECT_NAME} src/bcryptcpp.cpp
             include/bcryptcpp.hpp
-            include/errors.hpp
             src/legacy.h)
 endif ()
 if (WITH_CONAN)

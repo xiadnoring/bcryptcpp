@@ -20,6 +20,7 @@ make
 
 ```bash
 ./test
-Test#0 OK
-Test#1 OK
+#0 OK
+#1 OK
+...
 ```

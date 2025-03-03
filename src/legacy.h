@@ -20,8 +20,7 @@ Copyright 2007-2017 Thorsten Kukuk and Zack Weinberg
 /** github: https://github.com/besser82/libxcrypt */
 /** license: https://github.com/besser82/libxcrypt/blob/develop/LICENSING */
 
-#ifndef LEGACY_H
-#define LEGACY_H
+#pragma once
 
 /*
  * The crypt_blowfish homepage is:
@@ -147,7 +146,7 @@ typedef union
 
 struct crypt_internal
 {
-  char alignas (alignof (max_align_t)) alg_specific[ALG_SPECIFIC_SIZE];
+  char alg_specific[ALG_SPECIFIC_SIZE] alignas(alignof(max_align_t));
 };
 
 static inline struct crypt_internal * get_internal (struct crypt_data *data)
@@ -1176,5 +1175,3 @@ gensalt_bcrypt_y_rn (unsigned long count,
   BF_gensalt ('y', count, rbytes, nrbytes, output, o_size);
 }
 #endif
-
-#endif //LEGACY_H

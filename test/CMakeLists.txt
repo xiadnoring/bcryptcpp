@@ -7,7 +7,7 @@ cmake_policy(SET CMP0091 NEW)
 
 find_package(bcryptcpp REQUIRED)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 add_executable(${PROJECT_NAME} main.cpp)
 

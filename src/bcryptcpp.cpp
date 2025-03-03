@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2023-2024, Xiadnoring (Timur Zajnullin).
+ * Copyright (C) 2023-2025, Xiadnoring (Timur Zajnullin).
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -23,6 +23,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
+/** High-level libcrypt interfaces.
+ *
+ * Copyright 2007-2017 Thorsten Kukuk and Zack Weinberg
+ * Copyright 2018-2021 Björn Esser
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see
+ * <https://www.gnu.org/licenses/>.
+ *
+ * github: https://github.com/besser82/libxcrypt
+ * license: https://github.com/besser82/libxcrypt/blob/develop/LICENSING
+ **/
+
 #if _WIN32
 #   include <windows.h>
 #   include <wincrypt.h>
@@ -35,7 +58,6 @@
 
 #include "legacy.h"
 #include "bcryptcpp.hpp"
-#include "errors.hpp"
 
 #define BCRYPT_HASHSIZE 31
 
@@ -77,7 +99,7 @@ std::string random_string (const size_t &len) {
     {
         std::ifstream input ("/dev/urandom", std::ios::binary | std::ios::in);
         if (!input.is_open()) { throw bcrypt::exception::gensalt ("{}(): failed to get random string from /dev/urandom", __FUNCTION__); }
-        input.read(rnd.data(), rnd.size());
+        input.read(rnd.data(), static_cast<ssize_t>(rnd.size()));
         input.close();
     }
     else
@@ -101,17 +123,21 @@ std::string random_string (const size_t &len) {
  * @param str string to resolve
  * @return resolved string
  */
-std::string resolve_string (const std::string &str) {
+std::string resolve_string (std::string str) {
     const auto pos = str.find('\0');
     if (pos != std::string::npos)
     {
-        return std::move(str.substr(0, pos));
+        str.resize(pos);
     }
 
-    return str;
+    return std::move(str);
 }
 
 std::string bcrypt::gensalt(const int &factor = 10, char minor, const size_t &random_bytes) {
+    return std::move(gensalt(factor, minor, random_string(random_bytes)));
+}
+
+std::string bcrypt::gensalt(const int &factor, char minor, std::string_view random_bytes) noexcept(false) {
     if (factor < 4 || factor > 31)
     {
         throw bcrypt::exception::gensalt ("{}(): factor must be >= 4 and <= 31, but factor = {}", __FUNCTION__, factor);
@@ -125,30 +151,45 @@ std::string bcrypt::gensalt(const int &factor = 10, char minor, const size_t &ra
     std::string salt;
     // max 31
     salt.resize(BCRYPT_HASHSIZE);
-    const std::string rstr = random_string(random_bytes);
-    BF_gensalt (minor, factor, reinterpret_cast <const uint8_t *> (rstr.data()), static_cast<int> (rstr.size()), (uint8_t *) salt.data(), static_cast<int> (salt.size()));
+    BF_gensalt (minor, factor, reinterpret_cast <const uint8_t *> (random_bytes.data()), static_cast<int> (random_bytes.size()), (uint8_t *) salt.data(), static_cast<int> (salt.size()));
 
     if (salt[0] == '\0') {
         throw bcrypt::exception::gensalt ("{}(): BF_gensalt(...) -> salt = \\0 x{}.", __FUNCTION__, salt.size());
     }
 
-    return std::move(resolve_string(salt));
+    return std::move(resolve_string(std::move(salt)));
 }
 
-std::string bcrypt::hash(const std::string &str, const std::string &salt) {
-    std::string hash;
-    hash.resize(sizeof (struct crypt_data));
-    struct crypt_internal *cint = get_internal ((crypt_data *) hash.data());
-    BF_full_crypt (str.data(), salt.data(), (uint8_t *) hash.data(), static_cast<int> (hash.size()), cint, sizeof (struct crypt_internal));
+std::string bcrypt::gensalt(const int &factor, char minor, const std::string &random_bytes) noexcept(false) {
+    return std::move(gensalt(factor, minor, std::string_view{random_bytes}));
+}
 
-    if (hash[0] == '\0') {
-        throw bcrypt::exception::hash ("{}(): BF_full_crypt(...) -> hash = \\0 x{}.", __FUNCTION__, hash.size());
-    }
+std::string bcrypt::gensalt(const int &factor, char minor, const char *random_bytes) noexcept(false) {
+    return std::move(gensalt(factor, minor, std::string_view{random_bytes}));
+}
 
-    return std::move(resolve_string (hash));
+std::string bcrypt::hash(const std::string &data, const std::string &salt) {
+    return std::move(bcrypt::hash(std::string_view{data}, std::string_view{salt}));
 }
 
 bool bcrypt::compare(const std::string &hash, const std::string &origin) {
+    return bcrypt::compare(std::string_view{hash}, std::string_view{origin});
+}
+
+std::string bcrypt::hash(std::string_view data, std::string_view salt) noexcept(false) {
+    std::string hash;
+    hash.resize(sizeof (struct crypt_data));
+    struct crypt_internal *cint = get_internal ((crypt_data *) hash.data());
+    BF_full_crypt (data.data(), salt.data(), (uint8_t *) hash.data(), static_cast<int> (hash.size()), cint, sizeof (struct crypt_internal));
+
+    if (hash[0] == '\0') {
+        throw bcrypt::exception::hash ("{}(): BF_full_crypt(...) -> hash = \\0 x{}. You may need to increase the size of the random string.", __FUNCTION__, hash.size());
+    }
+
+    return std::move(resolve_string (std::move(hash)));
+}
+
+bool bcrypt::compare(std::string_view hash, std::string_view origin) noexcept(false) {
     const std::string verify = bcrypt::hash(origin, hash);
 
     if (hash.size() != verify.size())
@@ -163,4 +204,12 @@ bool bcrypt::compare(const std::string &hash, const std::string &origin) {
     }
 
     return ret == 0;
+}
+
+std::string bcrypt::hash(const char *data, const char *salt) noexcept(false) {
+    return std::move(bcrypt::hash(std::string_view{data}, std::string_view{salt}));
+}
+
+bool bcrypt::compare(const char *hash, const char *origin) noexcept(false) {
+    return bcrypt::compare(std::string_view{hash}, std::string_view{origin});
 }

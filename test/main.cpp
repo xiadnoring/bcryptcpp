@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2023-2024, Xiadnoring (Timur Zajnullin).
+ * Copyright (C) 2023-2025, Xiadnoring (Timur Zajnullin).
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -25,14 +25,71 @@
 
 #include <iostream>
 #include <string>
+#include <cassert>
+
 #include <bcryptcpp/bcryptcpp.hpp>
 
+static int errcnt = 0;
+static int testcnt = 0;
+
+#define bassert(expr) bassert_ (expr, #expr, __FILE__, __LINE__)
+#define exceptassert(expr) try { expr; bassert_(false, #expr, __FILE__, __LINE__); } catch (...) { bassert_(true, #expr, __FILE__, __LINE__); }
+
+void bassert_ (bool res, std::string assert_expr, std::string assert_file, std::size_t assert_line) {
+    if (res) {
+        std::cout << '#' << testcnt++ << " OK" << std::endl;
+    }
+    else {
+        std::cout << '#' << testcnt++ << " FAILED: " << assert_expr << " [" << assert_file << ": " << assert_line << "]" << std::endl;
+        errcnt++;
+    }
+}
+
 int main () {
-    const std::string str = "hello world :<";
-    const std::string salt = bcrypt::gensalt (12);
-    const std::string hash = bcrypt::hash (str, salt);
-    const std::string rand = "$2a$10$66f5mZTOUzLxZOPzW1bSEeEkKF1vPztrzH/PaDcNfDKyRlj0.N3H.";
-    std::cout << "Test#0 " << (bcrypt::compare(hash, str) ? "OK" : "FAIL") << "\n";
-    std::cout << "Test#1 " << (bcrypt::compare(rand, str) ? "FAIL" : "OK") << "\n";
+    std::string origin = "hello world :<";
+    std::string valid_hash = bcrypt::hash (origin, bcrypt::gensalt (12));
+    std::string invalid_hash = "$2a$10$66f5mZTOUzLxZOPzW1bSEeEkKF1vPztrzH/PaDcNfDKyRlj0.N3H.";
+
+    /* valid hash */
+    bassert(bcrypt::compare(valid_hash, origin));
+
+    /* invalid origin */
+    bassert(!bcrypt::compare(valid_hash, "hello world :>"));
+
+    /* invalid origin */
+    bassert(!bcrypt::compare(valid_hash, "hellо world :<"));
+
+    /* invalid hash */
+    bassert(!bcrypt::compare(invalid_hash, origin));
+
+    /* check the equality */
+    bassert(bcrypt::gensalt (12, 'b', "1234567890ABCDEF") == "$2b$12$KRGxLBS0Lxe3KCDAOyPDPe");
+
+    /* check the equality */
+    bassert(bcrypt::gensalt (12, 'a', "1234567890ABCDEF") == "$2a$12$KRGxLBS0Lxe3KCDAOyPDPe");
+
+    /* validate input */
+    exceptassert(bcrypt::compare("hm", origin));
+
+    /* validate input */
+    exceptassert(bcrypt::gensalt(100));
+
+    /* validate input */
+    exceptassert(bcrypt::gensalt(-5, 'b'));
+
+    /* validate input */
+    exceptassert(bcrypt::gensalt(78, 'a'));
+
+    /* validate input */
+    exceptassert(bcrypt::gensalt(4, '\a'));
+
+    /* check the equality */
+    bassert("$2a$04$WUHhXETkX0DgW0PjXkbfWeWhWIPfFHFc84aZn6.RKOKXW8yHu0bPu" == bcrypt::hash ("", bcrypt::gensalt (4, 'a', "abcdefgabcdefgabcdefgabcdefg")));
+
+    /* validate input */
+    exceptassert(bcrypt::hash ("", bcrypt::gensalt (4, 'a', "abcd")));
+
+    assert(errcnt==0 && "some tests failed");
+
     return 0;
 }

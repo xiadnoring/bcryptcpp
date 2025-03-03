@@ -12,7 +12,7 @@ required_conan_version = ">=1.53.0"
 
 class BcryptCpp(ConanFile):
     name = "bcryptcpp"
-    version = "0.0.1"
+    version = "0.0.2"
     description = "A c++ wrapper for libxcrypt around bcrypt password hashing"
     license = "BSD-2-Clause"
     topics = ("crypto", "bcrypt")
@@ -22,19 +22,14 @@ class BcryptCpp(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {
         "shared": [True, False],
-        "fPIC": [True, False],
-        "min_cppstd": [14, 17, 20]
+        "fPIC": [True, False]
     }
     default_options = {
         "shared": False,
-        "fPIC": True,
-        "min_cppstd": 17
+        "fPIC": True
     }
     exports_sources = "src/*", "include/*", "CMakeLists.txt", "LICENSE"
-
-    @property
-    def _min_cppstd(self):
-        return int(self.options.min_cppstd)
+    _min_cppstd = 11
 
     @property
     def _compilers_minimum_version(self):
@@ -76,7 +71,7 @@ class BcryptCpp(ConanFile):
         tc.generate()
 
     def requirements(self):
-        if int(self.options.min_cppstd) < 20:
+        if int(self._min_cppstd) < 20:
             self.requires("fmt/11.0.2")
 
     def export_sources(self):
